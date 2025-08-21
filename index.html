@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>🍎 Fruit Type ✨</title>
+        <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        
+         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        
+        <div id="gameContainer">
+            <canvas id="gameCanvas"></canvas>
+            <div id="ui">
+            <div class="ui-box">Score: <span id="score">0</span></div>
+            <div id="combo" style="display:none;"></div>
+            <div class="ui-box" id="livesContainer"></div>
+            <div class="ui-box">High Score: <span id="highScore">0</span></div>
+         </div>
+            <div id="modal">
+                <h1>🍎 Fruit Type ✨</h1>
+                <p>Click a fruit and type its name before it falls!</p>
+                <button id="startButton">Start Game</button>
+                <button id="leaderboardButton">Leaderboard</button>
+            </div>
+        </div>
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/15.2.11/Tone.js"></script>
+        <script src="script.js"></script>
+    </body>
+</html>

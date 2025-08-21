@@ -1,0 +1,198 @@
+body {
+background: linear-gradient(135deg, #fde2ff, #e8cee4);
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+min-height: 100vh;
+margin: 0;
+font-family: 'Quicksand', sans-serif;
+overflow: hidden;
+color: #5d576b;
+touch-action: none;
+}
+
+#gameContainer {
+position: relative;
+background: rgba(255,255,255,0.7);
+border-radius: 20px;
+box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+overflow: hidden;
+width: 95vw;
+max-width: 800px;
+height: 90vh;
+max-height: 900px;
+display: flex;
+flex-direction: column;
+justify-content: flex-end;
+align-items: center;
+padding-bottom: 20px;
+transition: box-shadow 0.3s ease;
+}
+
+canvas {
+display: block;
+width: 100%;
+height: 100%;
+}
+
+#ui {
+position: absolute;
+top: 15px;
+left: 15px;
+right: 15px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+font-weight: 700;
+z-index: 10;
+}
+
+.ui-box {
+background: rgba(255,255,255,0.8);
+backdrop-filter: blur(5px);
+padding: 10px 20px;
+border-radius: 12px;
+font-size: clamp(16px, 2.5vw, 20px);
+min-width: 100px;
+text-align: center;
+box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+#combo {
+font-size: clamp(20px, 4vw, 36px);
+color: #716df0;
+text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+transition: transform 0.2s ease;
+transform: scale(1);
+position: absolute;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+z-index: 9;
+}
+
+#modal {
+position: absolute;
+top: 0; left: 0;
+width: 100%; height: 100%;
+background: rgba(0,0,0,0.6);
+backdrop-filter: blur(8px);
+color: white;
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+text-align: center;
+transition: opacity 0.5s ease;
+z-index: 20;
+}
+
+#combo {
+font-size: clamp(20px, 4vw, 36px);
+color: #716df0;
+text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+transition: transform 0.2s ease;
+transform: scale(1);
+position: absolute;
+z-index: 9;
+pointer-events: none;
+}
+
+#modal h1 {
+font-size: clamp(36px,8vw,56px);
+margin:0;
+text-shadow:2px 2px 4px rgba(0,0,0,0.5);
+}
+
+#modal p { font-size: clamp(16px,3vw,20px); margin:10px 0 20px; }
+
+#modal button {
+background: #8884ff;
+color: white;
+border: none;
+padding: 15px 30px;
+border-radius: 15px;
+font-family: 'Quicksand', sans-serif;
+font-size: clamp(18px,4vw,22px);
+font-weight: 700;
+cursor: pointer;
+box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+#modal button:not(:first-of-type) {
+  margin-top: 15px;
+}
+
+#modal button:hover {
+transform: scale(1.05);
+background: #716df0;
+box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+}
+
+#modal input {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 10px;
+  padding: 10px 15px;
+  color: white;
+  font-family: 'Quicksand', sans-serif;
+  font-size: clamp(16px, 3vw, 20px);
+  text-align: center;
+  margin-bottom: 20px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: border-color 0.2s ease;
+}
+
+#modal input:focus {
+  outline: none;
+  border-color: #8884ff;
+}
+
+.shake { animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both; transform: translate3d(0, 0, 0); }
+@keyframes shake {
+10%, 90% { transform: translate3d(-1px, 0, 0); }
+20%, 80% { transform: translate3d(2px, 0, 0); }
+30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+
+@keyframes flash {
+0%, 50%, 100% { opacity: 1; }
+25%, 75% { opacity: 0.2; }
+}
+
+.new-high-score-text {
+color: #FFD700;
+animation: flash 1s infinite;
+}
+
+.input-container {
+    position: relative;
+    width: 250px;
+    margin: 15px auto;
+}
+
+#nicknameInput {
+    width: 100%;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-radius: 8px;
+    color: white;
+    font-size: 1.2em;
+    text-align: center;
+    outline: none;
+}
+
+#nicknamePlaceholder {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    opacity: 0.7;
+    pointer-events: none; /* Allows clicks to pass through to the input */
+    transition: opacity 0.2s ease-in-out, font-size 0.2s ease-in-out;
+}
