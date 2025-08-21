@@ -34,7 +34,7 @@ Fruit Type ✨ is a fast-paced, fun, and colorful typing game where fruits fall 
 
 	1.	Clone or download this repository:
 
-git clone https://github.com/yourusername/fruit-type-game.git
+git clone [https://github.com/TheEvanCho/-Fruit-Type-]
 
 	2.	Open index.html in your browser (Chrome recommended).
 	3.	Make sure you have internet access to load the fonts, Supabase, and Tone.js.
