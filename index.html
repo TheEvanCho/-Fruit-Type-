@@ -1,0 +1,566 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🍎 Fruit Type ✨</title>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/15.2.11/Tone.js"></script>
+<style>
+body {
+    background: linear-gradient(135deg, #fde2ff, #e8cee4);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    font-family: 'Quicksand', sans-serif;
+    overflow: hidden;
+    color: #5d576b;
+    touch-action: none;
+}
+
+#gameContainer {
+    position: relative;
+    background: rgba(255,255,255,0.7);
+    border-radius: 20px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+    overflow: hidden;
+    width: 95vw;
+    max-width: 800px;
+    height: 90vh;
+    max-height: 900px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    padding-bottom: 20px;
+    transition: box-shadow 0.3s ease;
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+#ui {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    right: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 700;
+    z-index: 10;
+}
+
+.ui-box {
+    background: rgba(255,255,255,0.8);
+    backdrop-filter: blur(5px);
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-size: clamp(16px, 2.5vw, 20px);
+    min-width: 100px;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+#combo {
+    font-size: clamp(20px, 4vw, 36px);
+    color: #716df0;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    transition: transform 0.2s ease;
+    transform: scale(1);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9;
+}
+
+#modal {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(8px);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    transition: opacity 0.5s ease;
+    z-index: 20;
+}
+#combo {
+    font-size: clamp(20px, 4vw, 36px);
+    color: #716df0;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    transition: transform 0.2s ease;
+    transform: scale(1);
+    position: absolute;
+    /* Remove these: */
+    /* top: 50%; */
+    /* left: 50%; */
+    /* transform: translate(-50%, -50%); */
+    z-index: 9;
+    pointer-events: none;
+}
+#modal h1 {
+    font-size: clamp(36px,8vw,56px);
+    margin:0;
+    text-shadow:2px 2px 4px rgba(0,0,0,0.5);
+}
+
+#modal p { font-size: clamp(16px,3vw,20px); margin:10px 0 20px; }
+
+#modal button {
+    background: #8884ff;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 15px;
+    font-family: 'Quicksand', sans-serif;
+    font-size: clamp(18px,4vw,22px);
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+#modal button:hover {
+    transform: scale(1.05);
+    background: #716df0;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+}
+
+.shake { animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both; transform: translate3d(0, 0, 0); }
+@keyframes shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+
+/* New CSS for the flashing high score text */
+@keyframes flash {
+    0%, 50%, 100% { opacity: 1; }
+    25%, 75% { opacity: 0.2; }
+}
+.new-high-score-text {
+    color: #FFD700; /* Gold */
+    animation: flash 1s infinite;
+}
+</style>
+</head>
+<body>
+
+<div id="gameContainer">
+    <canvas id="gameCanvas"></canvas>
+    <div id="ui">
+        <div class="ui-box">Score: <span id="score">0</span></div>
+        <div id="combo" style="display:none;"></div>
+        <div class="ui-box" id="livesContainer"></div>
+        <div class="ui-box">High Score: <span id="highScore">0</span></div>
+    </div>
+    <div id="modal">
+        <h1>🍎 Fruit Type ✨</h1>
+        <p>Click a fruit and type its name before it falls!</p>
+        <button id="startButton">Start Game</button>
+    </div>
+</div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const gameContainer = document.getElementById('gameContainer');
+const scoreEl = document.getElementById('score');
+const livesContainerEl = document.getElementById('livesContainer');
+const comboEl = document.getElementById('combo');
+const modal = document.getElementById('modal');
+const startButton = document.getElementById('startButton');
+const highScoreEl = document.getElementById('highScore');
+
+const fruitTypes = ['apple','banana','strawberry','grape','blueberry','lemon','coconut','orange','cherry'];
+const fruitEmojis = ['🍎','🍌','🍓','🍇','🫐','🍋','🥥','🍊','🍒'];
+const specialFruits = {
+    'slowmo': { emoji: '⏰', type: 'slowmo' },
+    'lifeboost': { emoji: '♥️', type: 'lifeboost' },
+    'bomb': { emoji: '💣', type: 'bomb' },
+};
+const PARTICLE_COUNT = 30;
+const INITIAL_LIVES = 3;
+const COMBO_HEIGHT_THRESHOLD = 2/5;
+
+let fruits=[], particles=[], floatingTexts=[];
+let score=0,lives=INITIAL_LIVES,combo=0,gameState='start';
+let currentTypingFruit=null,currentInputText='';
+let spawnIntervalId=null,spawnRate=2000,speedMultiplier=1;
+let slowmoActive = false;
+let slowmoTimer = null;
+let highScore = parseInt(localStorage.getItem('fruitSparkHighScore')) || 0;
+
+function resizeCanvas(){
+    canvas.width=canvas.parentElement.clientWidth;
+    canvas.height=canvas.parentElement.clientHeight;
+}
+window.addEventListener('resize',resizeCanvas);
+
+window.onload = function(){
+    resizeCanvas();
+    updateHighScoreDisplay();
+
+    const synthPing=new Tone.Synth({oscillator:{type:'sine'},envelope:{attack:0.01,decay:0.2,sustain:0.1,release:0.1}}).toDestination();
+    const synthPop=new Tone.Synth({oscillator:{type:'sine'},envelope:{attack:0.01,decay:0.3,sustain:0.1,release:0.2}}).toDestination();
+    const synthMiss=new Tone.Synth({oscillator:{type:'triangle'},envelope:{attack:0.01,decay:0.4,sustain:0.1,release:0.3}}).toDestination();
+    const synthPowerUp=new Tone.PolySynth(Tone.Synth).toDestination();
+
+    const playSound=async(type)=>{
+        await Tone.start();
+        if(type==='ping') synthPing.triggerAttackRelease('C4','8n');
+        if(type==='pop') synthPop.triggerAttackRelease('E4','8n');
+        if(type==='miss') synthMiss.triggerAttackRelease('A3','8n');
+        if(type==='powerup') synthPowerUp.triggerAttackRelease(['C5','E5','G5'],'8n');
+    };
+
+    class Fruit{
+        constructor(){
+            this.isSpecial = (Math.random() < 0.1);
+            if (this.isSpecial) {
+                const specialKey = Object.keys(specialFruits)[Math.floor(Math.random() * Object.keys(specialFruits).length)];
+                this.type = specialFruits[specialKey].type;
+                this.emoji = specialFruits[specialKey].emoji;
+                this.radius=canvas.height*0.03;
+            } else {
+                const idx=Math.floor(Math.random()*fruitTypes.length);
+                this.type=fruitTypes[idx]; 
+                this.emoji=fruitEmojis[idx];
+                this.radius=canvas.height*0.06;
+            }
+
+            this.x=Math.random()*(canvas.width-2*this.radius)+this.radius;
+            this.y=-this.radius;
+            this.speed=(0.3+Math.random()*0.7)*speedMultiplier*(canvas.height/600);
+        }
+        draw(){
+            if(this===currentTypingFruit){
+                ctx.save();
+                ctx.shadowColor='#fff';
+                ctx.shadowBlur=25;
+                ctx.fillStyle='rgba(255,255,255,0.7)';
+                ctx.beginPath();
+                ctx.arc(this.x,this.y,this.radius,0,Math.PI*2);
+                ctx.fill();
+                ctx.restore();
+            }
+            ctx.font=`${this.radius*1.4}px Arial`;
+            ctx.textAlign='center'; ctx.textBaseline='middle';
+            ctx.fillText(this.emoji,this.x,this.y);
+            if(this===currentTypingFruit) this.drawTypingUI();
+        }
+        update(){
+            if (slowmoActive) {
+                this.y += this.speed * 0.5;
+            } else {
+                this.y += this.speed;
+            }
+            this.draw(); 
+        }
+        drawTypingUI() {
+            const y = this.y + this.radius + 15;
+            const isCorrect = this.type.startsWith(currentInputText);
+
+            ctx.font = '24px Quicksand';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+
+            const textMetrics = ctx.measureText(this.type);
+            const boxWidth = textMetrics.width + 20;
+            const boxHeight = 40;
+
+            const boxX = this.x - boxWidth / 2;
+            const boxY = y - boxHeight / 2;
+
+            ctx.fillStyle = 'rgba(0,0,0,0.1)';
+            if (ctx.roundRect) {
+            ctx.beginPath();
+            ctx.roundRect(boxX, boxY, boxWidth, boxHeight, [15]);
+            ctx.fill();
+            } else {
+            ctx.fillRect(boxX, boxY, boxWidth, boxHeight);
+            }
+
+            const textX = boxX + 10;
+
+            ctx.fillStyle = 'rgba(255,255,255,0.3)';
+            ctx.fillText(this.type, textX, y);
+
+            ctx.fillStyle = isCorrect ? '#a7ff8b' : '#ff8b8b';
+            ctx.fillText(currentInputText, textX, y);
+
+            if (Date.now() % 1000 < 500) {
+            const cursorX = textX + ctx.measureText(currentInputText).width + 2;
+            ctx.fillStyle = 'white';
+            ctx.fillRect(cursorX, y - 12, 2, 24);
+            }
+        }
+    }
+
+    class Particle{
+        constructor(x,y, color, sizeMultiplier = 1){ 
+            this.x=x; 
+            this.y=y; 
+            this.size=(Math.random()*5+2) * sizeMultiplier; 
+            this.speedX=(Math.random()-0.5)*6; 
+            this.speedY=(Math.random()-0.5)*6; 
+            this.color=color; 
+            this.life=1; 
+            this.fadeSpeed=0.03; 
+        }
+        update(){ this.x+=this.speedX; this.y+=this.speedY; this.life-=this.fadeSpeed; }
+        draw(){ ctx.save(); ctx.globalAlpha=this.life; ctx.fillStyle=this.color; ctx.beginPath(); ctx.arc(this.x,this.y,this.size,0,Math.PI*2); ctx.fill(); ctx.restore(); }
+    }
+
+    class FloatingText{
+        constructor(text,x,y,color){ 
+            this.text=text; 
+            this.x=canvas.width / 2; 
+            this.y=canvas.height / 2; 
+            this.color=color; 
+            this.opacity=1.0; 
+            this.vy=-1; 
+            this.life=120;
+        }
+        update(){ this.y+=this.vy; this.opacity=this.life/120; this.life--; }
+        draw(){ ctx.save(); ctx.globalAlpha=this.opacity; ctx.font='bold 30px Quicksand'; ctx.textAlign='center'; ctx.fillStyle=this.color; ctx.fillText(this.text,this.x,this.y); ctx.restore();}
+    }
+    
+    function getParticleColor(fruitType) {
+        switch (fruitType) {
+            case 'apple': return 'red';
+            case 'banana': return '#FFD700';
+            case 'strawberry': return '#FF4500';
+            case 'grape': return '#8A2BE2';
+            case 'blueberry': return '#4169E1';
+            case 'lemon': return 'yellow';
+            case 'coconut': return '#A0522D';
+            case 'orange': return 'orange';
+            case 'cherry': return '#DC143C';
+            default: return `hsl(${Math.random()*60+20},100%,70%)`;
+        }
+    }
+
+    function createParticles(x,y, fruitType, sizeMultiplier = 1){ 
+        const color = getParticleColor(fruitType);
+        for(let i=0;i<PARTICLE_COUNT;i++) particles.push(new Particle(x,y, color, sizeMultiplier)); 
+    }
+
+    function spawnFruit(){ 
+        if(gameState==='playing') fruits.push(new Fruit()); 
+    }
+
+    function updateUI(){
+    scoreEl.textContent=score;
+    livesContainerEl.innerHTML = '♥️'.repeat(lives);
+
+    // Center combo text in canvas
+    if(combo>0){
+        comboEl.style.display='block';
+        comboEl.textContent=`Combo x${combo}`;
+        comboEl.style.transform=`scale(${1+combo*0.05})`;
+        comboEl.style.left = `${canvas.offsetLeft + canvas.width/2 - comboEl.offsetWidth/2}px`;
+        comboEl.style.top = `${canvas.offsetTop + canvas.height/2 - comboEl.offsetHeight/2}px`;
+        comboEl.style.position = 'absolute';
+    }
+    else comboEl.style.display='none';
+
+    updateHighScoreDisplay();
+}
+
+    function updateHighScoreDisplay(){
+        highScoreEl.textContent = highScore;
+    }
+
+    function resetTyping(){ currentTypingFruit=null; currentInputText=''; }
+    
+    function handleScreenShake() {
+        gameContainer.classList.add('shake');
+        setTimeout(() => {
+            gameContainer.classList.remove('shake');
+        }, 300);
+    }
+    
+    function activateSlowmo() {
+        if (slowmoActive) clearTimeout(slowmoTimer);
+        slowmoActive = true;
+        floatingTexts.push(new FloatingText('Slow Motion!', canvas.width / 2, canvas.height / 2, '#4CAF50'));
+        slowmoTimer = setTimeout(() => {
+            slowmoActive = false;
+        }, 5000);
+    }
+    
+    function activateBomb() {
+        playSound('powerup');
+        let fruitsToKeep = [];
+        fruits.forEach(f => {
+            if (!f.isSpecial) {
+                createParticles(f.x, f.y, f.type, 1.5);
+                floatingTexts.push(new FloatingText('BOOM!', f.x, f.y, '#FF0000'));
+            } else {
+                fruitsToKeep.push(f);
+            }
+        });
+        fruits = fruitsToKeep.filter(f => f.type !== 'bomb');
+        resetTyping();
+        updateUI();
+    }
+
+    function handleFruitMiss(fruit){
+        if (fruit.isSpecial) {
+            fruits = fruits.filter(f => f !== fruit);
+            return;
+        }
+        playSound('miss');
+        handleScreenShake();
+        fruits=fruits.filter(f=>f!==fruit);
+        lives--;
+        combo=0;
+        floatingTexts.push(new FloatingText('Miss!', canvas.width / 2, canvas.height / 2, 'red'));
+        if(fruit===currentTypingFruit) resetTyping();
+        updateUI();
+        if(lives<=0) endGame();
+    }
+
+    function gameLoop(){
+        if(gameState!=='playing') return;
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        
+        const comboLineY = canvas.height * COMBO_HEIGHT_THRESHOLD;
+        ctx.save();
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.moveTo(0, comboLineY);
+        ctx.lineTo(canvas.width, comboLineY);
+        ctx.stroke();
+        ctx.restore();
+
+        for(let i=fruits.length-1;i>=0;i--){ 
+            const f=fruits[i]; 
+            f.update(); 
+            if(f.y - f.radius > canvas.height) {
+                handleFruitMiss(f);
+                continue;
+            }
+            if (f.y > canvas.height * COMBO_HEIGHT_THRESHOLD && currentTypingFruit !== f && currentInputText === '') {
+                combo = 0;
+                updateUI();
+            }
+        }
+        particles.forEach(p=>{p.update();p.draw();}); particles=particles.filter(p=>p.life>0);
+        floatingTexts.forEach(t=>{t.update();t.draw();}); floatingTexts=floatingTexts.filter(t=>t.life>0);
+        requestAnimationFrame(gameLoop);
+    }
+
+    function startGame(){
+        score=0;lives=INITIAL_LIVES;combo=0;fruits=[];particles=[];floatingTexts=[];
+        speedMultiplier=1; spawnRate=2000; resetTyping(); updateUI();
+        gameState='playing'; modal.style.opacity='0'; modal.style.pointerEvents='none';
+        clearInterval(spawnIntervalId);
+        spawnIntervalId=setInterval(()=>{
+            spawnFruit();
+            if(spawnRate>700) spawnRate-=5;
+            speedMultiplier+=0.002;
+        },spawnRate);
+        gameLoop();
+    }
+
+    function endGame(){
+        gameState='gameOver'; clearInterval(spawnIntervalId);
+        if (score > highScore) {
+            highScore = score;
+            localStorage.setItem('fruitSparkHighScore', highScore);
+            modal.innerHTML=`<h1 class="new-high-score-text">New High Score!</h1><p>Your final score is ${score}</p><button id="restartButton">Play Again</button>`;
+        } else {
+            modal.innerHTML=`<h1>Game Over</h1><p>Your final score is ${score}</p><button id="restartButton">Play Again</button>`;
+        }
+        updateHighScoreDisplay();
+        document.getElementById('restartButton').addEventListener('click',startGame);
+        modal.style.opacity='1'; modal.style.pointerEvents='auto';
+    }
+
+    canvas.addEventListener('mousedown',(e)=>{
+        if(gameState!=='playing') return;
+        const rect=canvas.getBoundingClientRect();
+        const mouseX=e.clientX-rect.left, mouseY=e.clientY-rect.top;
+        const clickedFruit=fruits.find(f=>Math.hypot(f.x-mouseX,f.y-mouseY)<f.radius);
+        if(clickedFruit){ playSound('ping'); currentTypingFruit=clickedFruit; currentInputText=''; }
+        else resetTyping();
+    });
+
+    document.addEventListener('keydown',(e)=>{
+        if(gameState!=='playing' || !currentTypingFruit) return;
+        
+        const key=e.key;
+        if(key==='Enter'){
+            if(currentInputText===currentTypingFruit.type){
+                playSound('pop');
+                let points = 0;
+                
+                if (currentTypingFruit.isSpecial) {
+                    if (currentTypingFruit.type === 'slowmo') {
+                        activateSlowmo();
+                        points = 500;
+                    } else if (currentTypingFruit.type === 'lifeboost') {
+                        lives++;
+                        playSound('powerup');
+                        points = 250;
+                    } else if (currentTypingFruit.type === 'bomb') {
+                        activateBomb();
+                        points = 1000;
+                    }
+                } else {
+                    let comboMultiplier = combo > 0 ? combo : 1;
+                    points = currentTypingFruit.type.length * 10 * comboMultiplier;
+                }
+                
+                score+=points;
+                createParticles(currentTypingFruit.x, currentTypingFruit.y, currentTypingFruit.type, 1 + combo * 0.2);
+                floatingTexts.push(new FloatingText(`+${points}`, canvas.width / 2, canvas.height / 2, '#32CD32'));
+
+                if (!currentTypingFruit.isSpecial) combo++;
+
+                if(combo > 0 && combo % 5 === 0) floatingTexts.push(new FloatingText('Combo!', canvas.width / 2, canvas.height / 2, '#FFD700'));
+                
+                fruits=fruits.filter(f=>f!==currentTypingFruit); 
+                resetTyping(); 
+                updateUI();
+            } else { 
+                combo=0; 
+                updateUI(); 
+            }
+        } else if(key==='Backspace'){ 
+            currentInputText=currentInputText.slice(0,-1); 
+        } else if(key==='Escape'){ 
+            resetTyping(); 
+        } else if(key.length===1 && key.match(/[a-z]/i)){ 
+            currentInputText+=key.toLowerCase(); 
+        }
+        
+        if(currentTypingFruit && !currentTypingFruit.type.startsWith(currentInputText)){ 
+            combo=0; 
+            updateUI(); 
+        }
+    });
+
+    startButton.addEventListener('click',startGame);
+};
+</script>
+</body>
+</html>
